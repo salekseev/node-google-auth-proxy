@@ -8,7 +8,7 @@ var async = require('async');
 var validateUrlPath = function(urlTarget, callback) {
   var target = url.parse(urlTarget);
   //TODO validate it meets requirements
-  callback(null, { host: target.host, path: target.path} );
+  callback(null, { host: url.format({protocol: target.protocol, host: target.host}), path: target.pathname} );
 }
 
 var createProxy = function(urlPath, callback) {
