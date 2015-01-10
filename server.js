@@ -1,10 +1,13 @@
 var http = require('http'),
     httpProxy = require('http-proxy');
 
+var config = require('./config.json');
+var url = require('url');
+
 //
 // Create a proxy server with custom application logic
 //
-var proxy = httpProxy.createProxyServer({ target: 'http://www.sportsbikeshop.co.uk'});
+var proxy = httpProxy.createProxyServer({ target: 'http://host'});
 
 //
 // Create your custom server and just call `proxy.web()` to proxy
