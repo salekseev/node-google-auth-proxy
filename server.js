@@ -13,6 +13,9 @@ var validateUrlPath = function(urlTarget, callback) {
 
 var createProxy = function(urlPath, callback) {
   var proxy = httpProxy.createProxyServer({ target: urlPath.host });
+  proxy.on('error', function(err) {
+    console.log('Error: '+err+' for proxy ' + urlPath );
+  });
   console.log('Proxying '+urlPath.path+' => ' + urlPath.host);
   callback(null, { urlPath: urlPath, proxy: proxy });
 };
