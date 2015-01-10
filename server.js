@@ -53,8 +53,8 @@ var server = http.createServer(function(req, res) {
     if( err ) {
       console.log( err );
       res.statusCode = 404;
-      res.write('The page you are looking for is not found');
       res.setHeader("Content-Type", "text/plain");
+      res.write('The page you are looking for is not found');
       res.end();
     } else {
       console.log( 'Proxying request ' + req.url + ' => ' + proxy.urlPath.host );
