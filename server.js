@@ -72,7 +72,7 @@ server.on('upgrade', function (req, socket, head) {
       socket.end();
     } else {
       console.log( 'Proxying request upgrade ' + req.url + ' => ' + proxy.urlPath.host );
-      proxy.ws(req, socket, head);
+      proxy.proxy.ws(req, socket, head);
     }
   });
 });
