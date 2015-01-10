@@ -1,0 +1,11 @@
+{
+  "name": "google-auth-proxy",
+  "version": "0.0.0",
+  "description": "A reverse proxy for authenting apps using google oauth2",
+  "main": "server.js",
+  "repository": "",
+  "author": "Shane Weaver",
+  "dependencies": {
+    "http-proxy": "~1.8.1"
+  }
+}
