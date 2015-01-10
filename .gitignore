@@ -1,3 +1,9 @@
 .c9
 node_modules
 npm-debug.log
+
+# Logs
+logs *.log
+# Runtime data
+pids *.pid
+*.seed
