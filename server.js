@@ -85,7 +85,7 @@ server.on('request', function(req, res) {
       notFound(err);
       return;
     } 
-    console.log( 'Proxying request ' email + ':' + req.url + ' => ' + host );
+    console.log( 'Proxying request ' + email + ':' + req.url + ' => ' + host );
     // res.writeHead(200, { "Content-Type": "text/plain"});
     // res.write('Proxy found: ' + host);
     // res.end();
