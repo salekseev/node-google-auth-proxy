@@ -60,7 +60,7 @@ server.on('request', function(req, res) {
         badRequest(err);
         return;
       }
-      cookies.set('__userinfo.email', email, { signed: true, secureProxy: true, overwrite: true });
+      cookies.set('__userinfo.email', email, { signed: true, secureProxy: true, overwrite: true, maxAge: 30000 });
       redirect(path);
     });
     return;
