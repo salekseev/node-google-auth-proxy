@@ -60,7 +60,7 @@ server.on('request', function(req, res) {
         badRequest(err);
         return;
       }
-      cookies.set(config.cookie.name, email, { signed: true, secureProxy: false });
+      cookies.set('__userinfo.email', email, { signed: true, secureProxy: true, overwrite: true });
       redirect(path);
     });
     return;
@@ -68,7 +68,7 @@ server.on('request', function(req, res) {
   
   // normal path processing
     
-  var email = cookies.get(config.cookie.name, { signed: true } );
+  var email = cookies.get('__userinfo.email', { signed: true } );
   // 1. If no cookie or invalid, redirect for auth
   if( !email ) {
     redirect(oauth.authUrl(reqUrl.path));
