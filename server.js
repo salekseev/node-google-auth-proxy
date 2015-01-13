@@ -51,10 +51,10 @@ server.on('request', function(req, res) {
     badRequest('Failed to parse request URL');
     return;
   }
-  console.log( 'Requested ' + reqUrl.pathname );
+  // console.log( 'Requested ' + reqUrl.pathname );
   
   if( reqUrl.pathname == config.oauth.callbackPath ) {
-    console.log( 'Handling oauth callback' );
+    // console.log( 'Handling oauth callback' );
     oauth.action(reqUrl.query.code, reqUrl.query.state, function( err, email, path ) {
       if( err ) {
         badRequest(err);
@@ -74,7 +74,7 @@ server.on('request', function(req, res) {
     redirect(oauth.authUrl(reqUrl.path));
     return;
   } 
-  console.log('email retreived from secure cookie: ' + email);
+  // console.log('email retreived from secure cookie: ' + email);
   // 2. if not authorised, give forbidden message
   if( config.oauth.validUsers.indexOf( email ) == -1 ) {
     forbidden('User not authorised: '+email);
@@ -85,7 +85,7 @@ server.on('request', function(req, res) {
       notFound(err);
       return;
     } 
-    console.log( 'Proxying request ' + req.url + ' => ' + host );
+    console.log( 'Proxying request ' email + ':' + req.url + ' => ' + host );
     // res.writeHead(200, { "Content-Type": "text/plain"});
     // res.write('Proxy found: ' + host);
     // res.end();
@@ -96,7 +96,7 @@ server.on('request', function(req, res) {
 });
 
 server.on('upgrade', function (req, socket, head) {
-  console.log('Upgrade requested');
+  // console.log('Upgrade requested');
   var cookies = new Cookies(req,{},keys);
   
   var end = function(err) {
@@ -120,7 +120,7 @@ server.on('upgrade', function (req, socket, head) {
       end( err );
       return;
     } 
-    console.log( 'Proxying websocket ' + req.url + ' => ' + host );
+    console.log( 'Proxying websocket ' + email + ':' + req.url + ' => ' + host );
     proxyServer.ws(req, socket, head);
     
   });
