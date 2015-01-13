@@ -5,8 +5,6 @@ var url = require('url');
 
 var validateUrlPath = function(urlTarget, callback) {
   var target = url.parse(urlTarget);
-  //TODO validate it meets requirements
-  // 1. must have / + 1 character
   callback(null, { host: url.format({protocol: target.protocol, host: target.host}), path: target.pathname } );
 }
 
