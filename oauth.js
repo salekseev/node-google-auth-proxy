@@ -14,21 +14,21 @@ module.exports.action = function( code, state, callback ) {
     callback('No state supplied');
     return;
   }
-  console.log('code='+code);
-  console.log('state='+state);
+  // console.log('code='+code);
+  // console.log('state='+state);
   oauth2Client.getToken(code, function(err, tokens) {
     if( err ) {
       callback( 'Failed to get exchange code for tokens: ' + err );
       return;
     }
-    console.log('Tokens retrieved successfully');
+    // console.log('Tokens retrieved successfully');
     oauth2Client.setCredentials(tokens);
     userinfo.get({auth: oauth2Client}, function(err, user) {
       if( err ) {
         callback( 'Failed to perform UserInfo API call: '+err );
         return;
       }
-      console.log('Successfully retrieved UserInfo: ' + user.email);
+      // console.log('Successfully retrieved UserInfo: ' + user.email);
       callback(null, user.email, state);
     });
   });
