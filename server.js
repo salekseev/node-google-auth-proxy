@@ -98,7 +98,7 @@ server.on('upgrade', function (req, socket, head) {
     socket.end();
   }
   
-  var email = cookies.get('__userinfo.email', { signed: true } );
+  var email = cookies.get(config.cookie.name, { signed: true } );
   if( !email ) {
     end('No authorisation cookie for websocket');
     return;
