@@ -97,13 +97,30 @@ server.on('request', function(req, res) {
 
 server.on('upgrade', function (req, socket, head) {
   console.log('Upgrade requested');
+  var cookies = new Cookies(req,{},keys);
+  
+  var end = function(err) {
+    console.log(err);
+    socket.end();
+  }
+  
+  var email = cookies.get('__userinfo.email', { signed: true } );
+  if( !email ) {
+    end('No authorisation cookie for websocket');
+    return;
+  } 
+  console.log('email retreived from secure cookie: ' + email);
+  // 2. if not authorised, give forbidden message
+  if( config.oauth.validUsers.indexOf( email ) == -1 ) {
+    end('User not authorised: '+email);
+    return;
+  }
   proxy.detectProxy( req.url, function( err, proxyServer, host ) {
     if( err ) {
-      console.log( err );
-      socket.end();
+      end( err );
       return;
     } 
-    console.log( 'Proxying request upgrade ' + req.url + ' => ' + host );
+    console.log( 'Proxying websocket ' + req.url + ' => ' + host );
     proxyServer.ws(req, socket, head);
     
   });
