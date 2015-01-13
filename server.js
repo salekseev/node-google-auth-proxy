@@ -1,82 +1,106 @@
 var http = require('http');
-var httpProxy = require('http-proxy');
-
+var Cookies = require( "cookies" );
 var config = require('./config.json');
 var url = require('url');
-var async = require('async');
+var proxy = require('./proxy.js');
+var oauth = require('./oauth.js');
 
-var validateUrlPath = function(urlTarget, callback) {
-  var target = url.parse(urlTarget);
-  //TODO validate it meets requirements
-  callback(null, { host: url.format({protocol: target.protocol, host: target.host}), path: target.pathname} );
-}
+var Keygrip = require('keygrip');
+var keys = Keygrip(config.cookie.keys);
 
-var createProxy = function(urlPath, callback) {
-  var proxy = httpProxy.createProxyServer({ target: urlPath.host });
-  proxy.on('error', function(err) {
-    console.log('Error: '+err+' for proxy ' + urlPath.host + urlPath.path );
-  });
-  console.log('Proxying '+urlPath.path+' => ' + urlPath.host);
-  callback(null, { urlPath: urlPath, proxy: proxy });
-};
+var server = http.createServer();
 
-var proxies = [];
-
-async.map( config.targets, validateUrlPath, function(err, urlPaths) {
-  //TODO Check for error
-  async.map( urlPaths, createProxy, function(err, results) {
-    //TODO check for error
-    proxies = results;
-  });
-});
-
-function detectProxy( url, callback ) {
-  validateUrlPath(url, function(err, reqUrlPath) {
-    async.detect( proxies, function(proxy, callback) {
-      callback( reqUrlPath.path.indexOf(proxy.urlPath.path) === 0 );
-    }, function(result) {
-      if( result ) {
-        callback( null, result );
-      } else {
-        callback( 'No proxy found for ' + reqUrlPath.path );
+server.on('request', function(req, res) {
+  
+  var cookies = new Cookies(req,res,keys);
+  
+  var badRequest = function(err) {
+    console.log(err);
+    res.writeHead(403, {'Content-Type': 'text/plain'});
+    res.write('Bad request');
+    res.end();
+  };
+  
+  var redirect = function(loc) {
+    console.log('Redirecting to '+loc);
+    res.writeHead(302, {'Location': loc});
+    res.end();
+  };
+  
+  var notFound = function(err) {
+    console.log( err );
+    res.writeHead(404, { "Content-Type": "text/plain" });
+    res.write('The page you are looking for is not found');
+    res.end();
+  };
+  
+  var forbidden = function(err) {
+    console.log( err );
+    res.writeHead(403, { "Content-Type": "text/plain" });
+    res.write('You are not authorised to access this page');
+    res.end();
+  }
+  
+  var reqUrl = url.parse(req.url, true);
+  if( !reqUrl ) {
+    badRequest('Failed to parse request URL');
+    return;
+  }
+  console.log( 'Requested ' + reqUrl.pathname );
+  
+  if( reqUrl.pathname == config.oauth.callbackPath ) {
+    console.log( 'Handling oauth callback' );
+    oauth.action(reqUrl.query.code, reqUrl.query.state, function( err, email, path ) {
+      if( err ) {
+        badRequest(err);
+        return;
       }
+      cookies.set(config.cookie.name, email, { signed: true, secureProxy: true });
+      redirect(path);
     });
-  });
-}
-
-//
-// Create your custom server and just call `proxy.web()` to proxy
-// a web request to the target passed in the options
-// also you can use `proxy.ws()` to proxy a websockets request
-//
-var server = http.createServer(function(req, res) {
-  // You can define here your custom logic to handle the request
-  // and then proxy the request.
-  detectProxy( req.url, function( err, proxy ) {
+    return;
+  } 
+  
+  // normal path processing
+    
+  var email = cookies.get(config.cookie.name, { signed: true } );
+  // 1. If no cookie or invalid, redirect for auth
+  if( !email ) {
+    redirect(oauth.authUrl(reqUrl.path));
+    return;
+  } 
+  console.log('email retreived from secure cookie: ' + email);
+  // 2. if not authorised, give forbidden message
+  if( config.oauth.validUsers.indexOf( email ) == -1 ) {
+    forbidden('User not authorised: '+email);
+    return;
+  }
+  proxy.detectProxy( req.url, function( err, proxyServer, host ) {
     if( err ) {
-      console.log( err );
-      res.statusCode = 404;
-      res.setHeader("Content-Type", "text/plain");
-      res.write('The page you are looking for is not found');
-      res.end();
-    } else {
-      console.log( 'Proxying request ' + req.url + ' => ' + proxy.urlPath.host );
-      proxy.proxy.web(req,res);
-    }
+      notFound(err);
+      return;
+    } 
+    console.log( 'Proxying request ' + req.url + ' => ' + host );
+    // res.writeHead(200, { "Content-Type": "text/plain"});
+    // res.write('Proxy found: ' + host);
+    // res.end();
+    proxyServer.web(req,res);
+    
   });
-
+    
 });
 
 server.on('upgrade', function (req, socket, head) {
   console.log('Upgrade requested');
-  detectProxy( req.url, function( err, proxy ) {
+  proxy.detectProxy( req.url, function( err, proxyServer, host ) {
     if( err ) {
       console.log( err );
       socket.end();
-    } else {
-      console.log( 'Proxying request upgrade ' + req.url + ' => ' + proxy.urlPath.host );
-      proxy.proxy.ws(req, socket, head);
-    }
+      return;
+    } 
+    console.log( 'Proxying request upgrade ' + req.url + ' => ' + host );
+    proxyServer.ws(req, socket, head);
+    
   });
 });
 
