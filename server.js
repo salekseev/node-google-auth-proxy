@@ -1,14 +1,19 @@
-var http = require('http');
+var https = require('https');
 var Cookies = require( "cookies" );
 var config = require('./config.json');
 var url = require('url');
 var proxy = require('./proxy.js');
 var oauth = require('./oauth.js');
-
+var fs = require('fs');
 var Keygrip = require('keygrip');
 var keys = Keygrip(config.cookie.keys);
 
-var server = http.createServer();
+var options = {
+  key: fs.readFileSync(config.server.ssl.keyFile),
+  cert: fs.readFileSync(config.server.ssl.crtFile)
+};
+
+var server = https.createServer(options);
 
 server.on('request', function(req, res) {
   
@@ -55,7 +60,7 @@ server.on('request', function(req, res) {
         badRequest(err);
         return;
       }
-      cookies.set(config.cookie.name, email, { signed: true, secureProxy: true });
+      cookies.set(config.cookie.name, email, { signed: true, secureProxy: false });
       redirect(path);
     });
     return;
