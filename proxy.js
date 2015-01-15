@@ -10,6 +10,7 @@ var createProxy = function(options, callback) {
   });
   if( options.stripPath ) {
     proxy.on('proxyReq', function(proxyReq, req, res, options) {
+      // TODO: too simple?
       proxyReq.path = proxyReq.path.substr(options.path.length-1);
     });
   }
@@ -36,6 +37,7 @@ async.map( config.proxies, createProxy, function(err, results) {
 
 module.exports.detectProxy = function( reqUrl, callback ) {
   var reqPath = url.parse(reqUrl).path;
+  //TODO: error if not in format "/.+/"
   async.detect( proxies, function(proxy, callback) {
     callback( reqPath.indexOf(proxy.path) === 0 );
   }, function(result) {
