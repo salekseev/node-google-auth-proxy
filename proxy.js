@@ -3,40 +3,46 @@ var httpProxy = require('http-proxy');
 var config = require('./config.json');
 var url = require('url');
 
-var validateUrlPath = function(urlTarget, callback) {
-  var target = url.parse(urlTarget);
-  callback(null, { host: url.format({protocol: target.protocol, host: target.host}), path: target.pathname } );
-}
-
-var createProxy = function(urlPath, callback) {
-  var proxy = httpProxy.createProxyServer({ target: urlPath.host });
+var createProxy = function(options, callback) {
+  var proxy = httpProxy.createProxyServer(options);
   proxy.on('error', function(err) {
-    console.log(err+' for proxy ' + urlPath.host + urlPath.path );
+    console.log(err+' for proxy ' + options.target );
   });
-  console.log('Proxying '+urlPath.path+' => ' + urlPath.host);
-  callback(null, { urlPath: urlPath, proxy: proxy });
+  if( options.stripPath ) {
+    proxy.on('proxyReq', function(proxyReq, req, res, options) {
+      proxyReq.path = proxyReq.path.substr(options.path.length-1);
+    });
+  }
+  if( options.protocolRewrite ) {
+    proxy.on('proxyRes', function (proxyRes, req, res) {
+      var redirectRegex = /^30(1|2|3|7|8)$/;
+      if (proxyRes.headers['location'] && redirectRegex.test(proxyRes.statusCode)) {
+        var u = url.parse(proxyRes.headers['location']);
+        u.protocol = options.protocolRewrite;
+        proxyRes.headers['location'] = u.format();
+      }
+    });
+  }
+  console.log('Proxying '+options.path+' => ' + options.target);
+  callback(null, { path: options.path, target: options.target, proxy: proxy });
 };
 
 var proxies = [];
 
-async.map( config.targets, validateUrlPath, function(err, urlPaths) {
-  //TODO Check for error
-  async.map( urlPaths, createProxy, function(err, results) {
-    //TODO check for error
-    proxies = results;
-  });
+async.map( config.proxies, createProxy, function(err, results) {
+  //TODO check for error
+  proxies = results;
 });
 
-module.exports.detectProxy = function( url, callback ) {
-  validateUrlPath(url, function(err, reqUrlPath) {
-    async.detect( proxies, function(proxy, callback) {
-      callback( reqUrlPath.path.indexOf(proxy.urlPath.path) === 0 );
-    }, function(result) {
-      if( result ) {
-        callback( null, result.proxy, result.urlPath.host );
-      } else {
-        callback( 'No proxy found for ' + reqUrlPath.path );
-      }
-    });
+module.exports.detectProxy = function( reqUrl, callback ) {
+  var reqPath = url.parse(reqUrl).path;
+  async.detect( proxies, function(proxy, callback) {
+    callback( reqPath.indexOf(proxy.path) === 0 );
+  }, function(result) {
+    if( result ) {
+      callback( null, result.proxy, result.target );
+    } else {
+      callback( 'No proxy found for ' + reqPath.path );
+    }
   });
 }

@@ -120,17 +120,7 @@ server.on('upgrade', function (req, socket, head) {
   });
 });
 
-server.listen(process.env.PORT || config.server.httpsPort || 3000, process.env.IP || "0.0.0.0", function() {
+server.listen(process.env.PORT || config.server.port || 3000, process.env.IP || "0.0.0.0", function() {
   var addr = server.address();
   console.log("Google auth proxy server listening at", addr.address + ":" + addr.port);
-});
-
-http.createServer(function(req,res) {
-	var reqUrl = url.parse(req.url, true);
-	var loc = config.server.url + reqUrl.pathname;
-	console.log('Redirecting to '+loc);
-	res.writeHead(302, {'Location': loc});
-	res.end();
-}).listen( config.server.httpPort, "0.0.0.0", function() {
-	console.log("Listening for HTTP traffic on port " + config.server.httpPort);
 });
