@@ -7,3 +7,6 @@ logs *.log
 # Runtime data
 pids *.pid
 *.seed
+._*
+*.save
+nohup.out
