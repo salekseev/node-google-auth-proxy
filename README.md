@@ -15,7 +15,7 @@ use following command:
 sudo iptables -A PREROUTING -t nat -p tcp --dport 443 -j REDIRECT --to-port 8443
 ```
 
-## Installing Node on Raspberry Pi
+### Installing Node on Raspberry Pi
 
 ```bash
 wget http://nodejs.org/dist/v0.10.28/node-v0.10.28-linux-arm-pi.tar.gz
