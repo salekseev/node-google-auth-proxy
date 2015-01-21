@@ -7,6 +7,8 @@ Port of this [GO implementation](https://github.com/drweaver/google_auth_proxy)
 
 Free SSL certificate can be created from [startSSL](http://www.startssl.com/)
 
+### Configure ports not to need sudo/root
+
 To use default HTTPS (443) port the app requires root privileges.  Recommend using IP 
 tables to perform internal port forwarding to non-privileged ports.  To redirect port 443 to 8443 
 use following command:
