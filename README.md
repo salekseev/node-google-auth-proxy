@@ -73,6 +73,14 @@ To make this setting persit after a reboot install the following package (the ru
 sudo apt-get install iptables-persistent
 ```
 
+#### Auto-Start on Reboot
+
+Enter the following in your crontab (must configure ip tables as above with persistent if using restricted ports):
+
+```bash
+@reboot nohup /opt/node/bin/node /home/dr/node-google-auth-proxy/google-auth-proxy.js >> /home/dr/logs/google-auth-proxy.log &
+```
+
 #### Installing Node on Raspberry Pi
 
 ```bash
