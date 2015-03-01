@@ -67,6 +67,12 @@ use following command:
 sudo iptables -A PREROUTING -t nat -p tcp --dport 443 -j REDIRECT --to-port 8443
 ```
 
+To make this setting persit after a reboot install the following package (the rule you just applied will get saved during the installation):
+
+```bash
+sudo apt-get install iptables-persistent
+```
+
 #### Installing Node on Raspberry Pi
 
 ```bash
